@@ -160,9 +160,9 @@ def main():
 
     # run through each file and process
     try:
-        for slice, file in enumerate([Path(path) for path in input_filepaths[1:]]):
+        for time_slice, file in enumerate([Path(path) for path in input_filepaths[1:]]):
             input_netCDF4 = netCDF4.Dataset(str(file), 'r')
-            concatenate_file(input_netCDF4, output_netCDF4, slice)
+            concatenate_file(input_netCDF4, output_netCDF4, time_slice)
             print(f'\tfinished {str(file)}')
             input_netCDF4.close()
         
