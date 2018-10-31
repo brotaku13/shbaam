@@ -48,17 +48,17 @@ import csv
 #*******************************************************************************
 #Get command line arguments
 #*******************************************************************************
-IS_arg=len(sys.argv)
-if IS_arg != 7:
-     print('ERROR - 6 and only 6 arguments can be used')
-     raise SystemExit(22) 
+# IS_arg=len(sys.argv)
+# if IS_arg != 7:
+#      print('ERROR - 6 and only 6 arguments can be used')
+#      raise SystemExit(22) 
 
-shb_grc_ncf=sys.argv[1]
-shb_fct_ncf=sys.argv[2]
-shb_pol_shp=sys.argv[3]
-shb_pnt_shp=sys.argv[4]
-shb_wsa_csv=sys.argv[5]
-shb_wsa_ncf=sys.argv[6]
+shb_grc_ncf='input/GRACE/GRCTellus.JPL.200204_201608.GLO.RL05M_1.MSCNv02CRIv02.nc'
+shb_fct_ncf='input/GRACE/CLM4.SCALE_FACTOR.JPL.MSCNv01CRIv01.nc'
+shb_pol_shp='input/SERVIR_STK/NorthWestBD.shp'
+shb_pnt_shp='output/SERVIR_STK/GRCTellus.JPL.pnt_tst.shp'
+shb_wsa_csv='output/SERVIR_STK/timeseries_NorthWestBD_tst.csv'
+shb_wsa_ncf='output/SERVIR_STK/map_NorthWestBD_tst.nc'
 
 
 #*******************************************************************************
@@ -328,7 +328,7 @@ for JS_dom_tot in range(IS_dom_tot):
 
 
 #*******************************************************************************
-#Find number of NoData points in scale factors for shapefile and area
+# Find number of NoData points in scale factors for shapefile and area
 #*******************************************************************************
 print('Find number of NoData points in scale factors for shapefile and area')
 
