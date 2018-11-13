@@ -13,56 +13,21 @@
 # Import Python modules
 # *******************************************************************************
 import netCDF4
-from pathlib import Path
+import os
+import glob
 import sys
 import numpy
 import datetime
 
 """
-Validates the arguments supplied. to the program. 
+Validates argumnets supplied
 """
-def validate_args():
-    print('Validating filepaths...')
-    # check each input file for validity
-    for filename in sys.argv[1: -1]:
-        filepath = Path(filename)
-
-        # Test if file is a directory and if it exists
-        if not filepath.exists() or filepath.is_dir():
-            print('ERROR - given file does not exist or is a directory')
-            raise SystemExit(22)
-
-        # test if file has correct extension
-        if filepath.suffix != '.nc4' and filepath.suffix != '.nc':
-            print(f'ERROR - {filepath.suffix} is not a valid filetype')
-            print('Filetype must be either .nc or .nc4')
-            raise SystemExit(22)
-
-        # Test if file is openable
-        try:
-            with open(str(filepath)) as file:
-                pass
-        except IOError as e:
-            print('ERROR - Unable to open '+ str(filepath))
-            raise SystemExit(22) 
-
-    # check output location
-    output_file = Path(sys.argv[-1])
-
-    # check if a dir was supplied
-    if output_file.is_dir():
-        print('ERROR - output file must be a filename, not a directory')
-        raise SystemExit(22) 
-    
-    # test if file has correct extension
-    if output_file.suffix != '.nc4' and output_file.suffix != '.nc':
-        print(f'ERROR - {str(output_file)} is not a valid filetype')
-        print('Filetype must be either .nc or .nc4')
-        raise SystemExit(22)
-
-    # if it passes all the tests, then continue
-    print('All paths validated')
-    return True
+def validate_args(args):
+    print('---------')
+    print(args)
+    for file in glob.glob(args[0]):
+        if not os.path.isfile(args[0]):
+            raise FileNotFoundError('The file ' + file + ' is not valid')
 
 """
 We should validate the netCDF4 files to be sure they are all the same dimension sizes before attempting to merge them
@@ -88,7 +53,7 @@ def copy(input_filepath, output_filepath):
         print('Copying dimensions...')
         for name, dimension in src.dimensions.items():
             dst.createDimension(name, len(dimension) if not dimension.isunlimited() else None)
-            print(f'\tName: {name}\n\tLength: {len(dimension)}')
+            print('\tName: {}\n\tLength: {}'.format(name, len(dimension)))
 
         # copy variables
         print('Initializing with data from first file')
@@ -126,12 +91,12 @@ def alter_time_dimension(output_file, input_filepaths):
 
         dt = datetime.datetime(int(year), int(month), 1)
         datestrings.append(str(dt))
-    #     print(f'\t{file}\n\tCreated in: {dt}')
+    
     
     # print('Assigning datetimes to time variable')
     nc_time = output_file.variables['time']
     # nc_time = numpy.ma.masked_array(datestrings, mask=False)
-    nc_time.units = f'Months beginning at {str(datestrings[0])}'
+    nc_time.units = 'Months beginning at ' + str(datestrings[0])
     
     
 
@@ -139,10 +104,10 @@ def main():
     print('Beginning Concatenation of nc.4 files')
     print('Input Files: ')
     for p in sys.argv[1:-1]:
-        print(f'\t{p}')
-    print(f'Output File: \n\t{sys.argv[-1]}')
+        print('\t' + p)
+    print('Output File: ' + str(sys.argv[-1]))
     # validate argv
-    validate_args()
+    validate_args(sys.argv[1:])
 
     # validate netCDF4 variables
     validate_netCDF4()
@@ -160,10 +125,11 @@ def main():
 
     # run through each file and process
     try:
-        for time_slice, file in enumerate([Path(path) for path in input_filepaths[1:]]):
+        time_slice = 0
+        for file in input_filepaths[1:]:
             input_netCDF4 = netCDF4.Dataset(str(file), 'r')
             concatenate_file(input_netCDF4, output_netCDF4, time_slice)
-            print(f'\tfinished {str(file)}')
+            print('\tFinished '+ str(file))
             input_netCDF4.close()
         
         alter_time_dimension(output_netCDF4, input_filepaths)

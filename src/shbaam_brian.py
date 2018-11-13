@@ -51,6 +51,11 @@ def water_storage_timeseries(longitudes, latitudes, swe_averages, surface_areas,
             # add to the running total for this period in time
             total_swe_anomaly += anomaly
 
+            # want millimeters averaged over the entire area
+            # compute mass of volume of each grid cell
+            
+            # add them up and divide over total area
+
         #append to the timeseries to get the total swe anomaly for all grid cells per time block
         timeseries.append(total_swe_anomaly)
 
@@ -85,7 +90,7 @@ def create_timestrings(input_netCDF4):
 Helper function for creating datestrings. Increments the month by one. This can't be done using timedelta 
 because a month is not a uniform measure. 
 
-input:
+params:
     date {datetime} a datetime object to increment by a month
 
 return:
@@ -103,7 +108,7 @@ def add_month(date):
 
 """
 Creates a csv with the SWE average for each month
-input:
+params:
     timestrings {list} a list of strings in MM/DD/YYYY format. One for each time dimension in the input netCDF4
     swe_sums {list} a list of swe_sums derived from the water_storage_timeseries function
     output_file {str} file string of the output file. It should have already been tested before input to this function
@@ -138,7 +143,7 @@ def create_csv(timestrings, swe_sums, output_csv):
 Retrieves the fillvalue from the original input netCDF4 file. If there is no fill value specified,
 then it returns the default
 
-input:
+params:
     input_netCDF4 {netCDF4.Dataseet} Dataset object from the netCDF4 library
 
 returns:
@@ -160,7 +165,7 @@ def get_fillvalue(input_netCDF4):
 """
 Creates an output netCDF4 file with...
 
-input:
+params:
     input_filepath {str} a filepath given as one of the arguments to run the script. The location of the input nc4 file
     output_filepath {str} a filepath given as one of the arguments to run the script. The location of the output nc4 file
     fillvalue {str} the fillvalue to use when creating the masked arrays. Retrieve using the get_fillvalue function defined earlier
@@ -206,7 +211,7 @@ def create_output_netCDF4(input_filepath, output_filepath, fillvalue, longitudes
 """
 creates the dimensions for the output netCDF4 file. 
 
-input:
+params:
     output_netCDF4 {netCDF4.Dataset} the dataset which was created
     longitudes {list} longitudes taken from the original input nc4 file
     latitudes {list}  latitudes taken from the original input nc4 file
@@ -221,7 +226,7 @@ def create_dimensions(output_netCDF4, longitudes, latitudes):
 
 """
 Creates the variables for the output nc4 file
-input:
+params:
     output_netCDF4 {netCDF4.Dataset} the dataset which was created
     fillvalue {str} the fillvalue to be used in the swe variable
 
@@ -251,7 +256,7 @@ def create_variables(output_netCDF4, fillvalue):
 
 """
 Creates the global variables for the output nc4 file
-input:
+params:
     output_netCDF4 {netCDF4.Dataset} the dataset which was created
 """
 def create_global_attributes(input_filepath, output_netCDF4):
@@ -278,7 +283,7 @@ def create_global_attributes(input_filepath, output_netCDF4):
 Copies the attributes from the input netCDF4 file provided in the program args over to
 the newly created output file. 
 
-input: 
+params: 
     input_filepath {str} the filepath to the input nc4 file
     destination {netCDF4.Dataset} the dataset which was created
 """
@@ -292,10 +297,13 @@ def copy_variable_attributes(source, destination):
         destination[name].setncatts(source[name].__dict__)
 
 
+    # this should be revised to only grab feasable attributes
+
+
 """
 These are for the WGS84 spheroid
 
-input:
+params:
     output_netCDF4 {netCDF4.Dataset} the dataset which was created
     output_variables {dict} the variables objects of the output dataset in {'name': variable} format
 """
