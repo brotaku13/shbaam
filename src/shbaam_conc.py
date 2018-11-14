@@ -23,11 +23,13 @@ import datetime
 Validates argumnets supplied
 """
 def validate_args(args):
-    print('---------')
-    print(args)
+    print('Validating Args...')
     for file in glob.glob(args[0]):
-        if not os.path.isfile(args[0]):
-            raise FileNotFoundError('The file ' + file + ' is not valid')
+        try:
+            f = open(file, 'r')
+        except:
+            f.close()
+            raise Exception('Error opening file')
 
 """
 We should validate the netCDF4 files to be sure they are all the same dimension sizes before attempting to merge them
@@ -150,4 +152,3 @@ if __name__ == '__main__':
 
 
 # TODO: Copy global attributes over
-#       Time units

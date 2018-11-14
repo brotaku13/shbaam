@@ -9,11 +9,15 @@
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/shbaam_conc.py",
+            "program": "${workspaceFolder}/src/shbaam_brian.py",
             "console": "integratedTerminal",
+            "pythonPath": "/usr/bin/python2.7",
             "args": [
-                "input/GLDAS/GLDAS_VIC10_M/2002/*.nc4",
-                "src/output.nc4"
+                "${workspaceFolder}/input/GLDAS/GLDAS_VIC10_M/GLDAS_VIC10_M.A200204_200212.nc4",
+                "${workspaceFolder}/input/SERVIR_STK/NorthWestBD.shp",
+                "${workspaceFolder}/output/SERVIR_STK/GLDAS.VIC.pnt_tst.shp",
+                "${workspaceFolder}/output/SERVIR_STK/timeseries_swea_NorthWestBD_tst.csv",
+                "${workspaceFolder}/output/SERVIR_STK/map_swea_NorthWestBD_tst.nc"
             ]
         },
         {
