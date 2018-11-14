@@ -13,12 +13,20 @@
             "console": "integratedTerminal",
             "pythonPath": "/usr/bin/python2.7",
             "args": [
-                "${workspaceFolder}/input/GLDAS/GLDAS_VIC10_M/GLDAS_VIC10_M.A200204_200212.nc4",
-                "${workspaceFolder}/input/SERVIR_STK/NorthWestBD.shp",
+                "${workspaceFolder}/team_code/GLDAS_VIC10_M.A200204_200212.nc4",
+                "${workspaceFolder}/input/SERVIR_STK/Nepal.shp",
                 "${workspaceFolder}/output/SERVIR_STK/GLDAS.VIC.pnt_tst.shp",
                 "${workspaceFolder}/output/SERVIR_STK/timeseries_swea_NorthWestBD_tst.csv",
                 "${workspaceFolder}/output/SERVIR_STK/map_swea_NorthWestBD_tst.nc"
             ]
+            // "args":[
+            //     "${workspaceFolder}/input/GRACE/GRCTellus.JPL.200204_201608.GLO.RL05M_1.MSCNv02CRIv02.nc",
+            //     "${workspaceFolder}/input/GRACE/CLM4.SCALE_FACTOR.JPL.MSCNv01CRIv01.nc",
+            //     "${workspaceFolder}/input/SERVIR_STK/NorthWestBD.shp",
+            //     "${workspaceFolder}/output/SERVIR_STK/GRCTellus.JPL.pnt_tst.shp",
+            //     "${workspaceFolder}/output/SERVIR_STK/timeseries_NorthWestBD_tst.csv",
+            //     "${workspaceFolder}/output/SERVIR_STK/map_NorthWestBD_tst.nc"
+            // ]
         },
         {
             "name": "Python: Attach",
