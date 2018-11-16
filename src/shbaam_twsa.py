@@ -524,9 +524,7 @@ for JS_dom_tot in range(IS_dom_tot):
      else:
           ZS_dom_scl=ZM_grc_scl[JS_grc_lat,JS_grc_lon]
      for JS_grc_time in range(IS_grc_time):
-          lwe_thickness[JS_grc_time,JS_grc_lat,JS_grc_lon]=                    \
-            f.variables['lwe_thickness'][JS_grc_time,JS_grc_lat,JS_grc_lon]    \
-            -ZS_dom_avg
+          lwe_thickness[JS_grc_time,JS_grc_lat,JS_grc_lon] = f.variables['lwe_thickness'][JS_grc_time,JS_grc_lat,JS_grc_lon] - ZS_dom_avg
 
 time[:]=f.variables['time'][:]
 

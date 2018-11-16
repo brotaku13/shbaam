@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import rtree
 import math
 import shapely.prepared
@@ -29,9 +31,14 @@ return:
 def water_storage_timeseries(longitudes, latitudes, swe_averages, surface_areas, input_netCDF4):
     print('Compute total terrestrial water storage anomaly timeseries')
 
+    # compute total surface area
+    total_surface_area = 0
+    for grid_cell in range(len(swe_averages)):
+        total_surface_area += surface_areas[grid_cell]
+
     # init timeseries
     timeseries = []
-
+    
     # grab all time dimensions for the timeseries, there should be one for each month we are measuring
     times = len(input_netCDF4.dimensions['time'])
     for time in range(times):
@@ -47,6 +54,8 @@ def water_storage_timeseries(longitudes, latitudes, swe_averages, surface_areas,
             swe_average = swe_averages[grid_cell]
 
             # in original code, he did something with the mask, but I don't think we have to do this? line 363-366 {?}
+
+            # add to total surface area
 
             # get original SWE for the grid cell at the time for this loop
             swe_total = input_netCDF4.variables['SWE'][time, lat, lon]
@@ -65,8 +74,8 @@ def water_storage_timeseries(longitudes, latitudes, swe_averages, surface_areas,
 
             # add them up and divide over total area
 
-        # append to the timeseries to get the total swe anomaly for all grid cells per time block
-        timeseries.append(total_swe_anomaly)
+        # get average
+        timeseries.append(total_swe_anomaly / total_surface_area)
 
     return timeseries
 
@@ -93,6 +102,7 @@ def create_timestrings(input_netCDF4):
 
     for month_delta in range(1, len(input_netCDF4.variables['time'])):
         # adds a new month to the timestrings, passing in the previous month to add to
+
         timestrings.append(add_month(timestrings[month_delta - 1]))
 
     return [date.strftime('%m/%d/%Y') for date in timestrings]
@@ -193,7 +203,7 @@ params:
 """
 
 
-def create_output_netCDF4(input_netCDF4, output_filepath, fillvalue, longitudes, latitudes, swe_averages, timeseries):
+def create_output_netCDF4(input_netCDF4, output_filepath, fillvalue, gld_lon, gld_lat, intersect_lon, intersect_lat, swe_averages, timeseries):
     print('creating output netCDF4 file...')
 
     # create the output nc4 file from the filepath supplied in the args
@@ -202,7 +212,7 @@ def create_output_netCDF4(input_netCDF4, output_filepath, fillvalue, longitudes,
     
 
     # create dimensions
-    create_dimensions(output_netCDF4, longitudes, latitudes)
+    create_dimensions(output_netCDF4, gld_lon, gld_lat)
 
     # create the variables then return them to use later in creating variable attributes
     variables = create_variables(output_netCDF4, fillvalue)
@@ -218,11 +228,16 @@ def create_output_netCDF4(input_netCDF4, output_filepath, fillvalue, longitudes,
 
     # populate static data
     print('populating static data')
-    variables['lon'][:] = input_netCDF4.variables['lon'][:]
-    variables['lat'][:] = input_netCDF4.variables['lat'][:]
 
-    populate_dynamic_data(output_netCDF4, input_netCDF4,
-                          longitudes, latitudes, swe_averages, timeseries)
+    lon = variables['lon']
+    lon[:] = input_netCDF4.variables['lon'][:]
+    # variables['lon'][:] = input_netCDF4.variables['lon'][:]
+    lat = variables['lat']
+    lat[:] = input_netCDF4.variables['lat'][:]
+
+    # variables['lat'][:] = input_netCDF4.variables['lat'][:]
+
+    populate_dynamic_data(output_netCDF4, input_netCDF4, intersect_lon, intersect_lat, swe_averages, timeseries)
 
     # close files
     output_netCDF4.close()
@@ -354,12 +369,13 @@ def populate_dynamic_data(output_netCDF4, input_netCDF4, longitudes, latitudes, 
         swe_average = swe_averages[grid_cell]
 
         for time in range(len(timeseries)):
-            output_netCDF4.variables['swe'][time, lat,
-                lon] = input_netCDF4.variables['SWE'][time, lat, lon] - swe_average
+            try:
+                output_netCDF4.variables['swe'][time, lat, lon] = input_netCDF4.variables['SWE'][time, lat, lon] - swe_average
+            except Exception as e:
+                print(e)
 
     # why do we do this?
-    output_netCDF4.variables['time'][:] = output_netCDF4.variables['time'][:]
-
+    output_netCDF4.variables['time'][:] = input_netCDF4.variables['time'][:]
 # =================================================Brian==========================================================
 # ================================================================================================================
 
@@ -380,7 +396,7 @@ Returns: Tuple containing 2 arrays: (time_averages, surface_areas)
 '''
 
 
-def grid_calculations(total_num_cells, grid_lats, grid_lons, times, cdf_file, lat_interval, lon_interval):
+def grid_calculations(total_num_cells, grid_lats, grid_lons, actual_lats, times, cdf_file, lat_interval, lon_interval):
 	# construct empty arrays to fill with values
 	time_averages = [0] * total_num_cells
 	surface_areas = [0] * total_num_cells
@@ -388,11 +404,11 @@ def grid_calculations(total_num_cells, grid_lats, grid_lons, times, cdf_file, la
 	# iterate through the lats and lons for each grid cell
 	for grid in range(total_num_cells):
 		# retrieve lat and lon
-		lat = grid_lats[grid]  # the latitude for the current cell
-		lon = grid_lons[grid]  # the longitude for the current cell
+		lat = grid_lats[grid]  # the index of latitude for the current cell
+		lon = grid_lons[grid]  # the index of longitude for the current cell
 
 		# get the surface area for this cell and add it to the surface_areas array
-		SA = 6371000 * math.radians(lat_interval) * 6371000 * math.radians(lon_interval) * math.cos(math.radians(lat))  # make a global var for 6371000
+		SA = 6371000 * math.radians(lat_interval) * 6371000 * math.radians(lon_interval) * math.cos(math.radians(actual_lats[lat]))  # make a global var for 6371000
 		surface_areas[grid] = SA
 
 		# iterate through the grid cell at each time in the netCDf file's time dimension
@@ -483,8 +499,8 @@ def createSpatialIndex(pointFile):
     for feature in pointFile:
         feature_id = int(feature['id'])
     	# the first argument of index.insert has to be 'int', not 'long' or 'str'
-    	shape = shapely.geometry.shape(feature['geometry'])
-    	index.insert(feature_id, shape.bounds)
+        shape = shapely.geometry.shape(feature['geometry'])
+        index.insert(feature_id, shape.bounds)
     	# creates an index between the feature ID and the bounds of that feature
 
     print(' - Spatial index created')
@@ -570,7 +586,7 @@ if __name__ == '__main__':
     index=createSpatialIndex(point_features)
     intersect_tot, intersect_lon, intersect_lat = find_intersection(polyShapeFile, index, point_features)
 
-    time_averages, surface_areas = grid_calculations(intersect_tot, intersect_lat, intersect_lon, num_of_time_steps, f, gld_lat_interval_size, gld_lon_interval_size)
+    time_averages, surface_areas = grid_calculations(intersect_tot, intersect_lat, intersect_lon, gld_lat, num_of_time_steps, f, gld_lat_interval_size, gld_lon_interval_size)
 
     swe_time_series = water_storage_timeseries(intersect_lon, intersect_lat, time_averages, surface_areas, f)
 
@@ -583,6 +599,6 @@ if __name__ == '__main__':
     create_csv(timestrings, swe_time_series, output_swe_csv)
     fillvalue = get_fillvalue(f)
 
-    create_output_netCDF4(f, output_swe_ncf, fillvalue, gld_lon, gld_lat, time_averages, swe_time_series)
+    create_output_netCDF4(f, output_swe_ncf, fillvalue, gld_lon, gld_lat, intersect_lon, intersect_lat, time_averages, swe_time_series)
 
     print('[+] Script Completed')
